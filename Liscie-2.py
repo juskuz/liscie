@@ -47,7 +47,7 @@ def extract_region_props(img, min_area):
         min_region = min(regions, key=lambda x: x["dist"])
         x1, y1, x2, y2 = min_region["bbox"]
         img = img[x1:x2, y1:y2]
-        t = (img, min_region["area"], min_region["convex_area"], min_region["eccentricity"], \
+        t = (min_region["area"], min_region["convex_area"], min_region["eccentricity"], \
              min_region["equivalent_diameter"], min_region["extent"], min_region["major_axis_length"], \
              min_region["minor_axis_length"], min_region["perimeter"])
         return t
@@ -93,24 +93,10 @@ def check_output_path():
 # main loop
 if __name__ == "__main__":
 
-    db_dir, folders ='', '' 
+    db_dir, folders ='', ''
     db_dir=check_input_path()
     output_filename = check_output_path()
     print('\nOK - Checked input params.\n')
-
-    # dictionaries for features:
-    all_surfaces = {}
-    all_convex_areas = {}
-    all_eccentricities = {}
-    all_equivalent_diameters = {}
-    all_extents = {}
-    all_major_axis_lengths = {}
-    all_minor_axis_lengths = {}
-    all_perimeters = {}
-    all_corners = {}
-    all_peaks = {}
-    all_censure_scales = {}
-    censure = feature.CENSURE()
 
     folders = list(os.listdir(db_dir))
 
@@ -123,17 +109,18 @@ if __name__ == "__main__":
         images_names.append(l)
 
     output_file = open(output_filename, 'w')
-    
+
     print("WORKING in progress... Please wait.")
     for folder in range(len(folders)):
         print (" Progress: {}/{}".format(folder, len(folders)))
         for image_name in images_names[folder]:
             img = io.imread(db_dir + '/' + folders[folder] + '/' + image_name)
             img = preprocess_image(img, 680, 620, 0.72)
-            img, surface, convex_area, eccentricity, equivalent_diameter, extent, major_axis_length, \
-            minor_axis_length, perimeter = extract_region_props(img, 2000)
+            features_tuple = extract_region_props(img, 2000)
+            print(features_tuple)
     # powyższe cechy można zapisać jako features_tuple i następnie konwertować poprzez
-    # komendę "features_list = list(features_tuple)"
+    #features_list = list(features_tuple)
+    #a_list = [el[1:] for el in map(tuple, reader)]
     #
     # kolejne cechy - pozmieniać, bo są takie jak Pawła
     #         c1 = surface
