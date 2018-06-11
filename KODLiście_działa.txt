@@ -1,0 +1,99 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import skimage
+import skimage.io as io
+import skimage.data as data
+import skimage.color as color
+import skimage.measure as measure
+from scipy.signal import convolve2d
+import sys
+import os
+#from skimage.morphology import skeletonize, thin
+import skimage.morphology as mo
+from skimage import data
+from skimage.feature import corner_harris, corner_subpix, corner_peaks
+from skimage.transform import warp, AffineTransform
+from skimage.draw import ellipse
+
+print('libraries - ok!')
+
+db_dir = sys.argv[1]
+output_dir = sys.argv[2]
+
+
+### liczenie k¹tów/naro¿ników ###
+def count_corners(img, preview = True):
+	coords = corner_peaks(corner_harris(image_grey), min_distance=3)# corner_peaks naro¿niki w obrazie odpowiedzi o miary rogu
+	coords_subpix = corner_subpix(image_grey, coords, window_size=13)
+	if preview:
+		plt.show()
+		fig, ax = plt.subplots()
+		ax.imshow(image_grey, interpolation='nearest', cmap=plt.cm.gray)
+		ax.plot(coords[:, 1], coords[:, 0], '.b', markersize=10) # markersize - niebieskie kó³ka
+		ax.plot(coords_subpix[:, 1], coords_subpix[:, 0], '+r', markersize=15) #markersize - wielkosc znacznika czerwone iksy
+	return len(coords_subpix) #liczy k¹ty wklês³e i wypuk³e
+
+images_names = []
+
+folders = list(os.listdir(db_dir))
+
+folders.remove('readme.txt')
+
+for folder in folders:
+	l = list(os.listdir(db_dir+'/'+folder))
+	images_names.append(l)
+
+'''
+image = io.imread('test.jpg')
+image_cutted = image[:650,:650]
+image_grey = color.rgb2gray(image_cutted)
+mask = (image_grey < 0.49)
+labels = measure.label(mask)
+io.imshow(mask)
+io.show()
+lista_etykiet=[]
+for i, e in enumerate (skimage.measure.regionprops(labels)):
+    if e.area>100:
+        print(e.area, i)
+        lista_etykiet.append(i)
+
+'''
+
+surface = {}#przejscie po wsystkich obrazkach
+for folder in range(len(folders)):
+	l1 = []
+	for image_name in images_names[folder]:
+		if image_name == "": continue
+		image = io.imread(db_dir+'/'+folders[folder]+'/'+image_name)
+		image_cutted = image[:550,:550]
+		image_grey = color.rgb2gray(image_cutted)
+		mask = (image_grey < 0.6)
+		labels = measure.label(mask)
+		l2 = []
+		for i, e in enumerate (skimage.measure.regionprops(labels)):
+			if e.area>2000:
+				l2.append(e.area)
+		if len(l2) > 0:
+			l1.append(max(l2))
+	#surface[folders[folder]] = np.median(l1)
+	print(count_corners(image_grey))
+	#io.imshow(image_grey)
+	#io.show()
+	#skeleton = mo.skeletonize(image_grey < 1)
+	#print(skeleton)
+	#coords = corner_peaks(corner_harris(image_grey), min_distance=2)
+	#coords_subpix = corner_subpix(image_grey, coords, window_size=20)
+	#fig, ax = plt.subplots()
+	#ax.imshow(image_grey, interpolation='nearest', cmap=plt.cm.gray)
+	#ax.plot(coords[:, 1], coords[:, 0], '.b', markersize=3)
+	#ax.plot(coords_subpix[:, 1], coords_subpix[:, 0], '+r', markersize=15)
+	#plt.show()
+	#io.imshow(skeleton)
+	#io.show()
+	#print("")
+
+
+output_file = open(output_dir, 'w')
+
+for i in surface:
+	output_file.write(str(i)+": "+str(surface[i])+"\n")
