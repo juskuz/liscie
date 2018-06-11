@@ -64,19 +64,8 @@ def detect_censure_scales(img, censure):
     censure.detect(img)
     return (len(censure.scales))
 
-def to_csv(folder_name, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11):
-    csv = str(folder_name) + "," \
-          + str(c1) + "," \
-          + str(c2) + "," \
-          + str(c3) + "," \
-          + str(c4) + "," \
-          + str(c5) + "," \
-          + str(c6) + "," \
-          + str(c7) + "," \
-          + str(c8) + "," \
-          + str(c9) + "," \
-          + str(c10) + "," \
-          + str(c11)
+def to_csv(folder_name, features_list):
+    csv = str(folder_name) + "," + (",".join(str(x) for x in features_list))
     return csv
 
 def check_input_path():
@@ -93,23 +82,23 @@ def check_input_path():
 
 def check_output_path():
     try:
-        output_dir = sys.argv[2]
-        if (os.path.exists(output_dir)):
-            print ("WARNING: File with that same name exists yet.")
+        output_file = sys.argv[2]
+        if (os.path.exists(output_file)):
+            print ("WARNING: File with that same name ({}) exists yet.".format(output_file))
     except:
-        print("ERROR: Missing output directory path.\n")
+        print("ERROR: Missing output file path.\n")
         sys.exit()
-    return(output_dir)
+    return(output_file)
 
 # main loop
 if __name__ == "__main__":
 
     db_dir, folders ='', '' 
     db_dir=check_input_path()
-    output_dir = check_output_path()
-    print('\nChecked input params. - OK\n')
+    output_filename = check_output_path()
+    print('\nOK - Checked input params.\n')
 
-# dictionaries for features:
+    # dictionaries for features:
     all_surfaces = {}
     all_convex_areas = {}
     all_eccentricities = {}
@@ -133,15 +122,20 @@ if __name__ == "__main__":
         l = list(os.listdir(db_dir + '/' + folder))
         images_names.append(l)
 
-    output_file = open("output.csv", 'a')
+    output_file = open(output_filename, 'w')
     
-    # for folder in range(len(folders)):
-    #     for image_name in images_names[folder]:
-    #         img = io.imread(db_dir + '/' + folders[folder] + '/' + image_name)
-    #         img = preprocess_image(img, 680, 620, 0.72)
-    #         img, surface, convex_area, eccentricity, equivalent_diameter, extent, major_axis_length, \
-    #         minor_axis_length, perimeter = extract_region_props(img, 2000)
-    #     #kolejne cechy - pozmieniać, bo są takie jak Pawła
+    print("WORKING in progress... Please wait.")
+    for folder in range(len(folders)):
+        print (" Progress: {}/{}".format(folder, len(folders)))
+        for image_name in images_names[folder]:
+            img = io.imread(db_dir + '/' + folders[folder] + '/' + image_name)
+            img = preprocess_image(img, 680, 620, 0.72)
+            img, surface, convex_area, eccentricity, equivalent_diameter, extent, major_axis_length, \
+            minor_axis_length, perimeter = extract_region_props(img, 2000)
+    # powyższe cechy można zapisać jako features_tuple i następnie konwertować poprzez
+    # komendę "features_list = list(features_tuple)"
+    #
+    # kolejne cechy - pozmieniać, bo są takie jak Pawła
     #         c1 = surface
     #         c2 = convex_area
     #         c3 = eccentricity
@@ -153,7 +147,8 @@ if __name__ == "__main__":
     #         c9 = count_corners(img)
     #         c10 = len(feature.peak_local_max(img))
     #         c11 = detect_censure_scales(img, censure)
-    #         csv = to_csv(folders[folder], c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11)
+    #         features_list = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]
+    #         csv = to_csv(folders[folder], features_list)
     #         output_file.write(csv + '\n')
-    # output_file.close()
-    # print('Extracted features has been saved to file: ', output_dir, '\n')
+    output_file.close()
+    print('\nFINISHED - Features saved to file {}.\n'.format(output_filename))
