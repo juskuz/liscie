@@ -1,0 +1,9 @@
+How to run scripts (commands):
+
+a) python3 extract_features.py <folder-with-files-to-extact-features> <file-to-save-extracted-features>
+
+b) python3 computational_experiment.py <file-with-extracted-features> 
+
+c) python3 train_model.py <file-with-extracted-features>
+
+d) python3 classify.py <folder-with-files-to-classify>
